@@ -86,9 +86,13 @@ function doPost(e) {
 
         var hours1 = r_range3[ix][0];
         var hours2 = r_range3[ix][1];
-        str = str + '・' + building[ix][0] + 'で' + eventname[ix][0] + 'が';　        
-        str = str + toDoubleDigits(hours1.getHours())　+ ':' + toDoubleDigits(hours1.getMinutes());
-        str = str + '-' + toDoubleDigits(hours2.getHours()) + ':' + toDoubleDigits(hours2.getMinutes()) +　'で開催。\n';
+        if(( hours1 == "NULL" ) || ( hours2 == "NULL"  )){
+          str = str + '・' + building[ix][0] + 'で' + eventname[ix][0] + 'が開催。\n';　
+        }else{
+          str = str + '・' + building[ix][0] + 'で' + eventname[ix][0] + 'が';　        
+          str = str + toDoubleDigits(hours1.getHours())　+ ':' + toDoubleDigits(hours1.getMinutes());
+          str = str + '-' + toDoubleDigits(hours2.getHours()) + ':' + toDoubleDigits(hours2.getMinutes()) +　'で開催。\n';
+        }
         flag = 1;
         flag2 = 1;
       }
