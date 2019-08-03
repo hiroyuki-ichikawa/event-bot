@@ -146,7 +146,7 @@ function compareDate2(date1,date2,date3){
  
 }
 
-
+/* 二桁にする */
 var toDoubleDigits = function(num) {
   num += "";
   if (num.length === 1) {
