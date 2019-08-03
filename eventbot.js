@@ -60,6 +60,7 @@ function doPost(e) {
   // シートのデータをとる
   var last_row = sheet.getLastRow();
   var str = "";
+  var str2 = [ "", "", "", "", "", "", "", "", "", "" , "" , "" ];
   var r_range = sheet.getRange( 1, 8, last_row );
   var date02 = r_range.getValues();
   var r_range2 = sheet.getRange( 1, 9, last_row );    
@@ -75,51 +76,92 @@ function doPost(e) {
     date03[ix][0] = new Date(date03[ix][0].getFullYear(),date03[ix][0].getMonth(),date03[ix][0].getDate());
   }
   
+  var d_count = 0;
+  var d_count2 = 0;
+  
   for( var jx=0; jx < count; jx++ ){
     var flag = 0;
 
     for (var ix=1; ix <= last_row-1; ix++){
       if( compareDate2(date01,date02[ix][0],date03[ix][0]) ){
         if( flag == 0 ){
-          str = str + '【' + date01.getFullYear() + "/" + ( date01.getMonth() + 1 )  + "/" + date01.getDate() + "のイベント】\n";
+          str2[ d_count2 ] = str2[ d_count2 ] + '【' + date01.getFullYear() + "/" + ( date01.getMonth() + 1 )  + "/" + date01.getDate() + "のイベント】\n";
         }
 
         var hours1 = r_range3[ix][0];
         var hours2 = r_range3[ix][1];
+        
         if(( hours1 == "NULL" ) || ( hours2 == "NULL"  )){
-          str = str + '・' + building[ix][0] + 'で' + eventname[ix][0] + 'が開催。\n';　
+          str2[ d_count2 ] = str2[ d_count2 ] + '・' + building[ix][0] + 'で' + eventname[ix][0] + 'が開催。\n';　
         }else{
-          str = str + '・' + building[ix][0] + 'で' + eventname[ix][0] + 'が';　        
-          str = str + toDoubleDigits(hours1.getHours())　+ ':' + toDoubleDigits(hours1.getMinutes());
-          str = str + '-' + toDoubleDigits(hours2.getHours()) + ':' + toDoubleDigits(hours2.getMinutes()) +　'で開催。\n';
+          str2[ d_count2 ] = str2[ d_count2 ] + '・' + building[ix][0] + 'で' + eventname[ix][0] + 'が';　        
+          str2[ d_count2 ] = str2[ d_count2 ] + toDoubleDigits(hours1.getHours())　+ ':' + toDoubleDigits(hours1.getMinutes());
+          str2[ d_count2 ] = str2[ d_count2 ] + '-' + toDoubleDigits(hours2.getHours()) + ':' + toDoubleDigits(hours2.getMinutes()) +　'で開催。\n';
         }
         flag = 1;
         flag2 = 1;
+        
+        d_count++;
+        
+        if( d_count == 10 ){
+          d_count = 0;
+          d_count2++;
+        }
+        if(d_count2 == 5 ){
+          break;
+        }
       }
     }
     
+    if(d_count2 == 5 ){
+      break;
+    }
     // 日付けを１日増やす
     date01.setDate( date01.getDate() + 1 );
   }
  
   if( flag2 == 0 ){
-    str = 'イベントはありませんでした。';
+    str2[0] = 'イベントはありませんでした。';
+  }else if( d_count == 0 ){
+    d_count2--;
   }
   
-  
+//  var json_obj = [{"type":"text","text":str},{"type":"text","text":str}];
+  var json_obj = "";
+  //json_obj = [{"type":"text","text":str2[0]}];
+
+  if( d_count2 == 0 ){
+    json_obj = [{"type":"text","text":str2[0]}];
+  }
+  if( d_count2 == 1 ){
+    json_obj = [{"type":"text","text":str2[0]},{"type":"text","text":str2[1]}];
+  }
+  if( d_count2 == 2 ){
+    json_obj = [{"type":"text","text":str2[0]},{"type":"text","text":str2[1]},{"type":"text","text":str2[2]}];
+  }  
+  if( d_count2 == 3 ){
+    json_obj = [{"type":"text","text":str2[0]},{"type":"text","text":str2[1]},{"type":"text","text":str2[2]},{"type":"text","text":str2[3]}];
+  }  
+  if( d_count2 == 4 ){
+    json_obj = [{"type":"text","text":str2[0]},{"type":"text","text":str2[1]},{"type":"text","text":str2[2]},{"type":"text","text":str2[3]},{"type":"text","text":str2[4]}];
+  }  
+  if( d_count2 == 5 ){
+    json_obj = [{"type":"text","text":str2[0]},{"type":"text","text":str2[1]},{"type":"text","text":str2[2]},{"type":"text","text":str2[3]},{"type":"text","text":str2[4]},{"type":"text","text":str2[5]}];
+  }  
+
+
   UrlFetchApp.fetch(url, {
     'headers': {
       'Content-Type': 'application/json; charset=UTF-8',
       'Authorization': 'Bearer ' + ACCESS_TOKEN,
     },
     'method': 'post',
-    'payload': JSON.stringify({
+    'payload': JSON.stringify(
+      {
       'replyToken': replyToken,
-      'messages': [{
-        'type': 'text',
-        'text': str,
-      }],
-    }),
+      'messages': json_obj,
+    }
+    ),
     });
   return ContentService.createTextOutput(JSON.stringify({'content': 'post ok'})).setMimeType(ContentService.MimeType.JSON);
 }
@@ -150,7 +192,7 @@ function compareDate2(date1,date2,date3){
  
 }
 
-/* 二桁にする */
+
 var toDoubleDigits = function(num) {
   num += "";
   if (num.length === 1) {
